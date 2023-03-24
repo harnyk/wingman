@@ -50,7 +50,7 @@ func DisplayResponse(query string, response Response) {
 		formattedCommand = sb.String()
 	}
 
-	headingColor := color.New(color.FgHiGreen, color.Bold, color.Underline)
+	headingColor := color.New(color.FgHiYellow, color.Bold, color.Underline)
 
 	headingColor.Println("             Query              ")
 	fmt.Println()

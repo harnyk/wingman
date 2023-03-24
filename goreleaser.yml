@@ -1,0 +1,13 @@
+project_name: wingman
+
+release:
+  prerelease: auto
+
+builds:
+  - binary: wingman
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
