@@ -1,7 +1,6 @@
 package wingman
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/sashabaranov/go-openai"
@@ -20,26 +19,24 @@ type App struct {
 	OpenAIClient *openai.Client
 }
 
-func (a *App) Loop(initialQuery string) error {
-	resp, err := GetResponse(a.OpenAIClient, initialQuery)
+func (a *App) Loop(query string) error {
+	resp, err := GetResponse(a.OpenAIClient, query)
 	if err != nil {
 		return err
 	}
 
-	DisplayResponse(resp)
+	DisplayResponse(query, resp)
 
 	action, err := Menu()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Action: ", action)
-
 	switch action {
 	case MARunCommand:
 		return RunCommand(resp.Command)
 	case MAReviseQuery:
-		newQuery, err := ReviseQuery(initialQuery)
+		newQuery, err := ReviseQuery(query)
 		if err != nil {
 			return err
 		}

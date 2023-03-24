@@ -2,8 +2,11 @@ package wingman
 
 import (
 	"fmt"
+	"strings"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
+	"github.com/alecthomas/chroma/quick"
+	"github.com/fatih/color"
 	"github.com/manifoldco/promptui"
 )
 
@@ -34,26 +37,44 @@ func Menu() (MenuAction, error) {
 	return MenuAction(index + 1), nil
 }
 
-func DisplayResponse(response Response) {
+func DisplayResponse(query string, response Response) {
 
-	renderedExplanation := string(markdown.Render(response.Explanation, 80, 10))
+	formattedExplanation := string(markdown.Render(response.Explanation, 80, 0))
 
-	fmt.Println("________________Command___________________")
+	var formattedCommand string
+	sb := &strings.Builder{}
+	err := quick.Highlight(sb, response.Command, "bash", "terminal16m", "monokai")
+	if err != nil {
+		formattedCommand = response.Command
+	} else {
+		formattedCommand = sb.String()
+	}
+
+	headingColor := color.New(color.FgHiGreen, color.Bold, color.Underline)
+
+	headingColor.Println("             Query              ")
 	fmt.Println()
-	fmt.Println(response.Command)
-	fmt.Println("______________Explanation_________________")
+	fmt.Println(query)
 	fmt.Println()
-	fmt.Println(renderedExplanation)
+	headingColor.Println("            Command             ")
+	fmt.Println()
+	fmt.Println(formattedCommand)
+	fmt.Println()
+	headingColor.Println("          Explanation           ")
+	fmt.Println()
+	fmt.Println(formattedExplanation)
 	fmt.Println()
 }
 
 func ReviseQuery(initialQuery string) (string, error) {
 	prompt := promptui.Prompt{
-		Label: "Query",
+		Label:     "Query",
+		Default:   initialQuery,
+		AllowEdit: true,
 	}
 	query, err := prompt.Run()
 	if err != nil {
-		return "", fmt.Errorf("Prompt failed %v", err)
+		return "", fmt.Errorf("prompt failed %v", err)
 	}
 
 	return query, nil
