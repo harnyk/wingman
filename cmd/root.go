@@ -5,9 +5,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -31,41 +29,14 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("openai_token token is not set. Please set it in config file or environment variable")
 		}
 
-		log.Println("openai_token:", openAIToken)
-
-		singleArg := strings.Join(args, " ")
-
-		environmentContext, err := wingman.NewContext()
-		if err != nil {
-			return err
-		}
-
-		prompt := wingman.CreatePrompt(singleArg, environmentContext)
-
-		log.Println("prompt: \n", prompt)
-
 		client := openai.NewClient(openAIToken)
 
-		resp, err := client.CreateChatCompletion(
-			context.Background(),
-			openai.ChatCompletionRequest{
-				Model: openai.GPT3Dot5Turbo,
-				Messages: []openai.ChatCompletionMessage{
-					{
-						Role:    openai.ChatMessageRoleUser,
-						Content: prompt,
-					},
-				},
-			},
-		)
-
-		if err != nil {
-			return err
+		app := wingman.App{
+			OpenAIClient: client,
 		}
 
-		log.Println("response:", resp)
-
-		return nil
+		query := strings.Join(args, " ")
+		return app.Loop(query)
 	},
 }
 

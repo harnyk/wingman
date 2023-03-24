@@ -10,6 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
+            "console": "integratedTerminal",
             "args": [
                 "how",
                 "to",

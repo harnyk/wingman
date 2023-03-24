@@ -22,12 +22,14 @@ func CreatePrompt(userPrompt string, envContext EnvironmentContext) string {
 	sbPrompt.WriteString(envContext.User)
 	sbPrompt.WriteString("\n")
 
-	sbPrompt.WriteString("Instruction: it is very important to reply in the following format (the response must terminate with END):\n\n")
-	sbPrompt.WriteString("COMMAND:\n")
+	sbPrompt.WriteString("Instruction: it is very important to reply in the following format (the response must terminate with [END]):\n\n")
+	sbPrompt.WriteString("[COMMAND]:\n")
 	sbPrompt.WriteString("some command, e.g. ls -la\n")
-	sbPrompt.WriteString("DESCRIPTION:\n")
+	sbPrompt.WriteString("[EXPLANATION]:\n")
 	sbPrompt.WriteString("a brief explanation how the command works\n")
-	sbPrompt.WriteString("END\n")
+	sbPrompt.WriteString("[END]\n")
+	sbPrompt.WriteString("\n")
+	sbPrompt.WriteString("In the EXPLANATION field use Markdown formatting if needed\n")
 
 	return sbPrompt.String()
 }
