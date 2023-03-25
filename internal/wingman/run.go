@@ -1,13 +1,18 @@
 package wingman
 
 import (
+	"log"
 	"os"
 	"os/exec"
 )
 
 func RunCommand(command string) error {
-	// todo: make this work on windows too
-	cmd := exec.Command("sh", "-c", command)
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+		log.Printf("No SHELL environment variable found, using %s", shell)
+	}
+	cmd := exec.Command(shell, "-c", command)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()

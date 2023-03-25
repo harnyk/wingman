@@ -20,10 +20,14 @@ type App struct {
 }
 
 func (a *App) Loop(query string) error {
+
+	stopSpinner := StartSpinner()
 	resp, err := GetResponse(a.OpenAIClient, query)
 	if err != nil {
+		stopSpinner()
 		return err
 	}
+	stopSpinner()
 
 	DisplayResponse(query, resp)
 
