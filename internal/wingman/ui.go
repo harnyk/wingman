@@ -72,6 +72,13 @@ func ReviseQuery(initialQuery string) (string, error) {
 		Label:     "Query",
 		Default:   initialQuery,
 		AllowEdit: true,
+		Validate: func(input string) error {
+			input = strings.TrimSpace(input)
+			if len(input) < 1 {
+				return fmt.Errorf("Query must be at least 1 character")
+			}
+			return nil
+		},
 	}
 	query, err := prompt.Run()
 	if err != nil {

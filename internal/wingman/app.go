@@ -21,6 +21,14 @@ type App struct {
 
 func (a *App) Loop(query string) error {
 
+	if query == "" {
+		var err error
+		query, err = ReviseQuery(query)
+		if err != nil {
+			return err
+		}
+	}
+
 	stopSpinner := StartSpinner()
 	resp, err := GetResponse(a.OpenAIClient, query)
 	if err != nil {

@@ -36,6 +36,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		query := strings.Join(args, " ")
+		query = strings.TrimSpace(query)
+
 		return app.Loop(query)
 	},
 }
