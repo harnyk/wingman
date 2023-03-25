@@ -36,4 +36,4 @@ wingman <your query>
 wingman display weather forecast in Kyiv
 ```
 
-[View Demo](https://asciinema.org/a/570008)
+[![asciicast](https://asciinema.org/a/570008.svg)](https://asciinema.org/a/570008)
