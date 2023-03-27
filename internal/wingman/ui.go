@@ -3,11 +3,12 @@ package wingman
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
 	"github.com/alecthomas/chroma/quick"
+	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
-	"github.com/janeczku/go-spinner"
 	"github.com/manifoldco/promptui"
 )
 
@@ -89,9 +90,8 @@ func ReviseQuery(initialQuery string) (string, error) {
 }
 
 func StartSpinner() func() {
-	sp := spinner.StartNew("Loading...")
-	sp.SetCharset([]string{"🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"})
-
+	sp := spinner.New(spinner.CharSets[37], 100*time.Millisecond)
+	sp.Start()
 	return func() {
 		sp.Stop()
 	}

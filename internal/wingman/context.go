@@ -13,9 +13,10 @@ import (
 // sbPrompt.WriteString("User: harnyk\n")
 
 type EnvironmentContext struct {
-	OS    string
-	Shell string
-	User  string
+	OS                  string
+	Shell               string
+	User                string
+	IsWindowsStyleFlags bool
 }
 
 func NewContext() (EnvironmentContext, error) {
@@ -24,10 +25,13 @@ func NewContext() (EnvironmentContext, error) {
 		return EnvironmentContext{}, err
 	}
 
+	sh, isWindowsStyleFlags := getShell()
+
 	envContext := EnvironmentContext{
-		OS:    getOS(),
-		Shell: getShell(),
-		User:  user,
+		OS:                  getOS(),
+		Shell:               sh,
+		IsWindowsStyleFlags: isWindowsStyleFlags,
+		User:                user,
 	}
 
 	return envContext, nil
@@ -37,8 +41,15 @@ func getOS() string {
 	return runtime.GOOS
 }
 
-func getShell() string {
-	return os.Getenv("SHELL")
+func getShell() (shell string, isWindowsStyleFlags bool) {
+	if os.Getenv("PSModulePath") != "" {
+		return "powershell", true
+	}
+	csp := os.Getenv("ComSpec")
+	if csp != "" {
+		return csp, true
+	}
+	return os.Getenv("SHELL"), false
 }
 
 func getUser() (string, error) {

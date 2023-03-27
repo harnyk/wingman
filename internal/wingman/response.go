@@ -1,10 +1,7 @@
 package wingman
 
 import (
-	"context"
 	"strings"
-
-	"github.com/sashabaranov/go-openai"
 )
 
 type Response struct {
@@ -57,44 +54,4 @@ func ParseResponse(response string) (Response, error) {
 		Command:     strings.Trim(sbCommand.String(), "\n"),
 		Explanation: strings.Trim(sbExplanation.String(), "\n"),
 	}, nil
-}
-
-func GetResponse(client *openai.Client, query string) (Response, error) {
-
-	environmentContext, err := NewContext()
-	if err != nil {
-		return Response{}, err
-	}
-
-	prompt := CreatePrompt(query, environmentContext)
-
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			N:     1,
-			Stop: []string{
-				"[END]",
-			},
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: prompt,
-				},
-			},
-		},
-	)
-
-	if err != nil {
-		return Response{}, err
-	}
-
-	raw := resp.Choices[0]
-	response, err := ParseResponse(raw.Message.Content)
-
-	if err != nil {
-		return Response{}, err
-	}
-
-	return response, nil
 }

@@ -31,8 +31,9 @@ var rootCmd = &cobra.Command{
 
 		client := openai.NewClient(openAIToken)
 
-		app := wingman.App{
-			OpenAIClient: client,
+		app, err := wingman.NewApp(client)
+		if err != nil {
+			return err
 		}
 
 		query := strings.Join(args, " ")
