@@ -12,11 +12,6 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// use promptui to create a menu:
-// 1. Run This Command
-// 2. Revise Query
-// 3. Exit
-
 type MenuAction int
 
 const (
@@ -33,7 +28,7 @@ func Menu() (MenuAction, error) {
 	index, _, err := prompt.Run()
 
 	if err != nil {
-		return 0, fmt.Errorf("Prompt failed %v", err)
+		return 0, fmt.Errorf("prompt failed %v", err)
 	}
 
 	return MenuAction(index + 1), nil
@@ -76,7 +71,7 @@ func ReviseQuery(initialQuery string) (string, error) {
 		Validate: func(input string) error {
 			input = strings.TrimSpace(input)
 			if len(input) < 1 {
-				return fmt.Errorf("Query must be at least 1 character")
+				return fmt.Errorf("query must be at least 1 character")
 			}
 			return nil
 		},

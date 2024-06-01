@@ -26,7 +26,10 @@ Then, you need to create a file `~/.wingman.yaml` with the following content:
 
 ```yaml
 openai_token = <your key>
+openai_model = gpt-4o
 ```
+
+`openai_model` can be omitted if you want to use the default model, which is `gpt-3.5-turbo`.
 
 ### Usage
 

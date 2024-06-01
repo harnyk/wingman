@@ -5,21 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "wingman how to list files in the current directory",
+            "name": "try",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
             "console": "integratedTerminal",
             "args": [
-                "how",
-                "to",
-                "list",
-                "files",
-                "in",
-                "the",
-                "current",
-                "directory"
+                "install postgresql"
             ]
         }
     ]

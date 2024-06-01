@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"text/template"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -20,19 +21,21 @@ import (
 // 7. If the user wants to exit, exit
 
 type App struct {
-	OpenAIClient *openai.Client
-	envContext   EnvironmentContext
+	client     *openai.Client
+	envContext EnvironmentContext
+	model      string
 }
 
-func NewApp(openAIClient *openai.Client) (*App, error) {
+func NewApp(openAIClient *openai.Client, openaiModel string) (*App, error) {
 	context, err := NewContext()
 	if err != nil {
 		return nil, err
 	}
 
 	return &App{
-		OpenAIClient: openAIClient,
-		envContext:   context,
+		client:     openAIClient,
+		envContext: context,
+		model:      openaiModel,
 	}, nil
 }
 
@@ -48,11 +51,10 @@ func (a *App) Loop(query string) error {
 
 	stopSpinner := StartSpinner()
 	resp, err := a.getResponse(query)
+	stopSpinner()
 	if err != nil {
-		stopSpinner()
 		return err
 	}
-	stopSpinner()
 
 	DisplayResponse(query, resp)
 
@@ -81,14 +83,14 @@ func (a *App) getResponse(query string) (Response, error) {
 
 	prompt := a.createPrompt(query)
 
-	resp, err := a.OpenAIClient.CreateChatCompletion(
+	resp, err := a.client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			N:     1,
-			Stop: []string{
-				"[END]",
+			Model: a.model,
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
 			},
+			N: 1,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -103,7 +105,7 @@ func (a *App) getResponse(query string) (Response, error) {
 	}
 
 	raw := resp.Choices[0]
-	response, err := ParseResponse(raw.Message.Content)
+	response, err := ParseResponseJSON(raw.Message.Content)
 
 	if err != nil {
 		return Response{}, err
@@ -142,34 +144,59 @@ func (a *App) runCommand(command string) error {
 	return nil
 }
 
+const promptTemplateTextJsonFormat = `
+Provide a terminal command which would do the following:\n
+{{ .UserPrompt }}
+
+Environment Context:
+OS: {{ .Context.OS }}
+Shell: {{ .Context.Shell }}
+User: {{ .Context.User }}
+Instruction: it is very important that your response is in the JSON format, corresponding to the following JSON schema:
+
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"command": {
+			"description": "the command to run directly in the shell",
+			"type": "string"
+		},
+		"explanation": {
+			"description": "a brief explanation how the command works",
+			"type": "string"
+		}
+	},
+	"required": ["command", "explanation"],
+	"additionalProperties": false
+}
+
+Example:
+
+User prompt:
+
+list all files in the current directory
+
+Response:
+{
+	"command": "ls -la",
+	"explanation": "ls lists all files in the current directory"
+}
+
+In the explanation field use Markdown formatting if needed.
+It is also important to pay attention on producing secure syntax, e.g. using proper quotes in the command.
+Do not use Markdown formatting in the command field.
+`
+
+var promptTemplate = template.Must(template.New("prompt").Parse(promptTemplateTextJsonFormat))
+
 func (a *App) createPrompt(userPrompt string) string {
 	sbPrompt := strings.Builder{}
-
-	sbPrompt.WriteString("Provide a terminal command which would do the following:\n")
-	sbPrompt.WriteString(userPrompt)
-	sbPrompt.WriteString("\n\n")
-	sbPrompt.WriteString("Environment Context:\n")
-
-	sbPrompt.WriteString("OS: ")
-	sbPrompt.WriteString(a.envContext.OS)
-	sbPrompt.WriteString("\n")
-
-	sbPrompt.WriteString("Shell: ")
-	sbPrompt.WriteString(a.envContext.Shell)
-	sbPrompt.WriteString("\n")
-
-	sbPrompt.WriteString("User: ")
-	sbPrompt.WriteString(a.envContext.User)
-	sbPrompt.WriteString("\n")
-
-	sbPrompt.WriteString("Instruction: it is very important to reply in the following format (the response must terminate with [END]):\n\n")
-	sbPrompt.WriteString("[COMMAND]:\n")
-	sbPrompt.WriteString("some command, e.g. ls -la\n")
-	sbPrompt.WriteString("[EXPLANATION]:\n")
-	sbPrompt.WriteString("a brief explanation how the command works\n")
-	sbPrompt.WriteString("[END]\n")
-	sbPrompt.WriteString("\n")
-	sbPrompt.WriteString("In the EXPLANATION field use Markdown formatting if needed\n")
-
+	if err := promptTemplate.Execute(&sbPrompt, map[string]interface{}{
+		"Context":    a.envContext,
+		"UserPrompt": userPrompt,
+	}); err != nil {
+		log.Fatal(err)
+	}
 	return sbPrompt.String()
 }

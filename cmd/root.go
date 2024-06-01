@@ -1,6 +1,5 @@
 /*
 Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -28,10 +27,14 @@ var rootCmd = &cobra.Command{
 		if openAIToken == "" {
 			return fmt.Errorf("openai_token token is not set. Please set it in config file or environment variable")
 		}
+		openaiModel := viper.GetString("openai_model")
+		if openaiModel == "" {
+			openaiModel = openai.GPT3Dot5Turbo
+		}
 
 		client := openai.NewClient(openAIToken)
 
-		app, err := wingman.NewApp(client)
+		app, err := wingman.NewApp(client, openaiModel)
 		if err != nil {
 			return err
 		}
